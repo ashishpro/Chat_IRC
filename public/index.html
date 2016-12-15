@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Pool</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <link href='https://fonts.googleapis.com/css?family=Sansita+One' rel='stylesheet' type='text/css'>
+    
+    <link rel="shortcut icon" href="icon.png">
+        <link rel="stylesheet" type="text/css" href="css/normalize.css" />
+        
+        <link rel="stylesheet" type="text/css" href="css/component.css" />
+        <link href='http://fonts.googleapis.com/css?family=Raleway:200,400,800|Clicker+Script' rel='stylesheet' type='text/css'>
+        
+    <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+  <style>
+
+        body{
+		 background:url(body_back.jpg);
+         background-size: 100%;
+         margin-top: 30px;
+         overflow-y:scroll;
+        }
+        #messageArea{
+          display: none;
+        }
+
+        #starter{
+          position: absolute;
+          height: 100%;
+          width: 100%;
+          top: 0;
+          left: 0;
+          background-image:url(background_1.jpg);
+          background-repeat: no-repeat;
+          background-size: cover;
+          z-index: 100;
+        }
+        .startbtt{
+          border-radius: 35px;
+          position: absolute;
+          cursor: pointer;
+          height: 60px;
+          width: 200px;
+          left: 42%;
+          top: 75%;
+		  background-color:#FFF;
+		  opacity:.6;
+          box-shadow:0px 0px 20px 2px #FFF;
+          animation:blinkbtt 2s infinite;
+          -webkit-animation:blinkbtt 2s infinite;
+          -moz-animation:blinkbtt 2s infinite;
+          -o-animation:blinkbtt 2s infinite;
+
+        }
+        @-moz-keyframes blinkbtt {
+          0%   {opacity:1;}
+            50%   {opacity:0;}
+        }
+    </style>
+
+  </head>
+  <body>
+
+    <div id="starter" class="container">
+    
+    <div class="container demo-2" style="width:100%;left:0px;">
+			<div id="large-header" class="large-header">
+                    <canvas id="demo-canvas"></canvas>
+                    <h1 class="main-title">The Pool</span></h1>
+                </div>
+           </div>
+    
+        <div class="startbtt" onclick="movestart()" style="z-index:10;"><h1 style="text-align:center;top:-120px;color:#333;font-family: 'Sansita One', cursive;">Begin</h1>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="userFormArea" class="row">
+          <div class="col-md-12">
+
+            <form id="userForm">
+                  <div class="form-group">
+                    <label style="color:#FFF;">Enter Username</label>
+                    <input class="form-control" id="username"/>
+                    <br/>
+                    <input type="submit" class="btn btn-primary" value="Login" />
+                  </div>
+            </form>
+
+          </div>
+        </div>
+        <div id="messageArea" class="row">
+            <div class="col-md-4">
+               <div class="well">
+                  <h3>Online USER</h3>
+                  <ul class="list-group" id="users"></ul>
+               </div>
+            </div>
+            <div class="col-md-8">
+                  <div class="chat" id="chat"></div>
+
+                  <form id="messageForm">
+                        <div class="form-group">
+                          <label>Enter Message</label>
+                          <textarea class="form-control" id="message"></textarea>
+                          <br/>
+                          <input type="submit" onClick="scrollPos()" class="btn btn-primary" value="Send Message" />
+                        </div>
+                  </form>
+
+            </div>
+         </div>
+      </div>
+
+        <script>
+
+          function movestart(){
+            var x = document.getElementById("starter");
+            x.style.transitionProperty="left";
+            x.style.transitionDelay=".5s";
+            x.style.transitionDuration=".2s";
+            x.style.transitionTimingFunction="linear";
+            x.style.left="-100%";
+          }
+		  
+		  function scrollPos() {
+  				  window.scrollTo(0,document.body.scrollHeight);
+				  alert(document.body.scrollHeight);
+			}
+
+            $(function(){
+                var socket = io.connect();
+                var $messageForm = $('#messageForm');
+                var $message = $('#message');
+                var $chat = $('#chat');
+                var $messageArea = $('#messageArea');
+                var $userForm = $('#userForm');
+                var $userFormArea = $('#userFormArea');
+                var $users = $('#users');
+                var $username = $('#username');
+
+                $messageForm.submit(function(e){
+                    e.preventDefault();
+                    socket.emit('send message',$message.val());
+                    $message.val('');
+                    });
+
+                socket.on('new message',function(data){
+                    $chat.append('<div class="well"><strong>'+data.user+'</strong>:'+data.msg+'</div>');
+                });
+
+                $userForm.submit(function(e){
+                    e.preventDefault();
+                    socket.emit('new user',$username.val(),function(data){
+                       if(data){
+
+                          $userFormArea.hide();
+                          $messageArea.show();
+                       }
+                    });
+                    $username.val('');
+                });
+
+                socket.on('get users',function(data){
+                  var html = '';
+                  for(i=0;i<data.length;i++){
+                    html += '<li class="list-group-item">'+data[i]+'</li>';
+                  }
+                  $users.html(html);
+                });
+            });
+        </script>
+        <script src="js/rAF.js"></script>
+        <script src="js/demo-2.js"></script>
+
+
+  </body>
+</html>
